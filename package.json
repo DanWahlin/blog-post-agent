@@ -1,0 +1,30 @@
+{
+  "name": "blog-post-agent",
+  "version": "1.0.0",
+  "description": "Agent to generate blog posts from GitHub repos",
+  "license": "MIT",
+  "author": "Dan Wahlin",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "tsx --no-deprecation ./src/index.ts",
+    "build": "npx tsc",
+    "watch": "tsx --watch",
+    "dev": "npx tsc && concurrently \"tsc --watch\" \"nodemon dist/index.js\""
+  },
+  "dependencies": {
+    "@azure/ai-projects": "1.0.0-beta.7",
+    "@azure/ai-agents": "1.0.0-beta.3",
+    "@azure/identity": "^4.10.0",
+    "dotenv": "^16.5.0",
+    "repomix": "^0.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.21",
+    "concurrently": "^9.1.2",
+    "nodemon": "^3.1.10",
+    "typescript": "^5.8.3",
+    "tsx": "^4.19.4"
+  }
+
+}
