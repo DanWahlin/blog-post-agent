@@ -83,3 +83,11 @@ export async function ensureFreshFile(filePath: string, maxAgeMinutes: number, f
     await fetchFn();
     return false;
 }
+
+export function extractIntroductionSection(markdown: string): string | null {
+    const introMatch = markdown.match(/## Introduction[\r\n]+([\s\S]*?)(?=^## |\Z)/m);
+    if (introMatch && introMatch[1]) {
+        return introMatch[1].trim();
+    }
+    return null;
+}

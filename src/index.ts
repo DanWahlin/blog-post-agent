@@ -5,71 +5,21 @@ import { DefaultAzureCredential } from '@azure/identity';
 import { ToolUtility, DoneEvent, ErrorEvent } from '@azure/ai-agents';
 import { AIProjectClient } from '@azure/ai-projects';
 import { config } from 'dotenv';
-import { getAssistantMessage, getAssistantMessageContent, saveBlogPostToFile, isMarkdown, processRemoteRepo, ensureFreshFile } from './utils.js';
+import { getAssistantMessage, getAssistantMessageContent, saveBlogPostToFile, isMarkdown, processRemoteRepo, ensureFreshFile, extractIntroductionSection } from './utils.js';
+import { argv } from './cliArgs.js';
 config();
 
-const prompt = `
-You are an expert technical blogger who specializes in spotlighting open-source 
-AI projects. Use the following ## Repo Information to write a blog post 
-titled “AI Repo of the Week: [Name of Repo]”. 
-
-## Repo Information
-
-Use the uploaded file as the source for ## Repo Information.
-
-## Instructions
-
-Before starting your writing, analyze all of the code files and markdown files 
-in the repo to understand its purpose and functionality. Take the time to understand
-the code and content and then write an informative and engagingblog post.
-
-Tone & Style of the blog post: 
-    - Professional yet engaging, with clear headings for easy skimming. 
-    - SEO-friendly (include “AI” and “GitHub” where natural).
-    - Optimized for social sharing (concise, action-oriented language).
-
-In addition to writing the blog post, include social media content as well based upon
-these rules:
-    - Write a short blurb about the blog post for social media sharing on LinkedIn. 
-    - Write a short blurb about the blog post that is short enough for social media sharing on Twitter/X.
-    - Include a link to the repo and a link to the blog post.
-    - Include appropriate emojis to make it visually appealing.
-    - Include hashtags like #AI, #GitHub, and the repo name. 
-    - Make it catchy and action-oriented to encourage clicks and shares.
-
-IMPORTANT:
-    - You have access to the uploaded file via the FileSearch tool. Use it to answer all questions about the repo.
-    - Output the blog post as markdown.
-    - DO NOT add source file references such as 【4:15†source】.
-    - The blog post should be 500 - 1000 words long but no longer than 1000.
-
-Include the following sections in your blog post. Use this as a template:
-
-# AI Repo of the Week: <Name of Repo>
-
-## Introduction (2–3 paragraphs)
-
-    - Summarize the repo’s purpose, its key benefits, and who it’s for. 
-    - Suggest 1–2 standout images (e.g. screenshots, architecture diagrams) from the repo to use as a header. 
-    - End with a strong call to action inviting readers to explore the repo. 
-
-## Key Features & Learning Journey
-    - Break down the repo’s main features in a logical “getting-started” sequence. 
-    - For code-focused demos, highlight the top 2–3 code snippets or examples that showcase functionality. 
-    - Use subheadings or numbered steps to guide readers through exploring the code. 
-
-## Conclusion & Call to Action
-    - Recap why this repo matters and what readers will gain. 
-    - Encourage them to visit, star, and contribute to the project. 
-`;
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const prompt = fs.readFileSync(path.join(__dirname, 'prompt.md'), 'utf8');
 
 await runBlogAgent().catch(console.error);
 
 async function runBlogAgent() {
     const endpoint = process.env.PROJECT_ENDPOINT;
     const deployment = process.env.MODEL_DEPLOYMENT_NAME || 'gpt-4o';
-    const blogRepoUrl = process.env.BLOG_REPO_URL;
-    const blogRepoName = process.env.BLOG_REPO_NAME;
+    const blogRepoUrl = argv.repoUrl || process.env.BLOG_REPO_URL;
+    const blogRepoName = argv.repoName || process.env.BLOG_REPO_NAME;
+    const blogRepoIgnoreFiles = argv.ignoreFiles || process.env.BLOG_REPO_IGNORE_FILES || '';
     if (!endpoint) {
         throw new Error('PROJECT_ENDPOINT environment variable is not set.');
     }
@@ -155,6 +105,16 @@ async function runBlogAgent() {
         const blogContent = getAssistantMessageContent(fileAssistantMessage);
         if (isMarkdown(blogContent)) {
             saveBlogPostToFile(fileAssistantMessage, path.join(__dirname, generatedBlogFilePath));
+            // Print the Introduction section to the console
+            if (blogContent) {
+                const intro = extractIntroductionSection(blogContent);
+                if (intro) {
+                    console.log('\n---------------- 📢 Introduction Section ----------------\n');
+                    console.log(intro);
+                } else {
+                    console.log('Introduction section not found in the blog post.');
+                }
+            }
         } else {
             console.warn('Agent response does not appear to be valid markdown or is too short. Not saving to file.');
             if (blogContent) {
@@ -172,4 +132,9 @@ async function runBlogAgent() {
         console.error('Error in runAgents:', err);
         throw err;
     }
+}
+
+if (argv.help || argv.h) {
+    console.log(`\nUsage: node src/index.js [options]\n\nOptions:\n  --repoUrl       GitHub repo URL\n  --repoName      Repo display name\n  --ignoreFiles   Glob patterns for files to ignore\n  -h, --help      Show this help message\n\nExample:\n  node src/index.js --repoUrl=https://github.com/microsoft/mcp-for-beginners --repoName="MCP for Beginners" --ignoreFiles="**/translations/*,**/translated_images/*"\n`);
+    process.exit(0);
 }
