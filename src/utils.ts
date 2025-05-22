@@ -63,3 +63,23 @@ export async function processRemoteRepo(repoUrl: string, outputFile: string): Pr
     };
     return await runCli(['.'], process.cwd(), options);
 }
+
+/**
+ * Checks if a file exists and is less than maxAgeMinutes old. If so, returns true. Otherwise, calls the fetchFn to (re)create the file and returns false.
+ */
+export async function ensureFreshFile(filePath: string, maxAgeMinutes: number, fetchFn: () => Promise<void>): Promise<boolean> {
+    if (fs.existsSync(filePath)) {
+        const stats = fs.statSync(filePath);
+        const now = Date.now();
+        const mtime = stats.mtime.getTime();
+        const ageMinutes = (now - mtime) / (1000 * 60);
+        if (ageMinutes <= maxAgeMinutes) {
+            console.log(`Using existing file: ${filePath} (age: ${ageMinutes.toFixed(1)} min)`);
+            return true;
+        } else {
+            console.log(`File is older than ${maxAgeMinutes} minutes. Will refresh: ${filePath}`);
+        }
+    }
+    await fetchFn();
+    return false;
+}
