@@ -47,7 +47,7 @@ async function runBlogAgent() {
         );
 
         // Upload a repomix blog file
-        console.log(`\n==================== 🕵️  BLOG POST AGENT ====================`);
+        console.log(`\n==================== 🕵️  BLOG POST AGENT (${deployment}) ====================`);
         const client: AIProjectClient = new AIProjectClient(endpoint, new DefaultAzureCredential());
         console.log(`\n---------------- 🗂️ Uploading File ----------------`);
         const file = await client.agents.files.upload(
