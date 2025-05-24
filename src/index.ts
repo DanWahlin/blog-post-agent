@@ -10,7 +10,6 @@ import { argv } from './cli-args.js';
 import { promptForMissingEnvVars, getCurrentEnvValues } from './env-prompts.js';
 config();
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 await runBlogAgent().catch(console.error);
 
 async function runBlogAgent() {
@@ -19,7 +18,8 @@ async function runBlogAgent() {
     
     // Prompt for missing values
     const envConfig = await promptForMissingEnvVars(currentValues);
-    
+
+    const __dirname = path.dirname(fileURLToPath(import.meta.url));
     const endpoint = envConfig.AI_FOUNDRY_PROJECT_ENDPOINT;
     const deployment = envConfig.MODEL_DEPLOYMENT_NAME;
     const blogRepoUrl = envConfig.BLOG_REPO_URL;
@@ -29,7 +29,6 @@ async function runBlogAgent() {
     const baseFilesPath = '../data'
     const repoDataFilePath = `${baseFilesPath}/repos/${normalizedFileName}.md`;
     const generatedBlogFilePath = `${baseFilesPath}/blogs/${normalizedFileName}.md`;
-    const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
     try {
         // Create blog post repomix
@@ -38,7 +37,7 @@ async function runBlogAgent() {
             repoDataFullPath,
             60,
             async () => {
-                await processRemoteRepo(blogRepoUrl, repoDataFullPath);
+                await processRemoteRepo(blogRepoUrl, repoDataFullPath, blogRepoIgnoreFiles);
             }
         );
 

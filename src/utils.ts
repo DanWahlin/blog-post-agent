@@ -51,15 +51,13 @@ export function isMarkdown(content: string | null): boolean {
     return (/^\s*#|^\s*---|^\s*\*|^\s*\d+\.|^\s*>|^\s*```/m.test(content) && content.trim().length > 200);
 }
 
-export async function processRemoteRepo(repoUrl: string, outputFile: string): Promise<unknown> {
-    const ignoreFiles = process.env.BLOG_REPO_IGNORE_FILES ? process.env.BLOG_REPO_IGNORE_FILES : '';
-
+export async function processRemoteRepo(repoUrl: string, outputFile: string, blogRepoIgnoreFiles: string): Promise<unknown> {
     const options: CliOptions = {
         style: 'markdown',
         remote: repoUrl,
         output: outputFile,
         compress: true,
-        ignore: ignoreFiles
+        ignore: blogRepoIgnoreFiles
     };
     return await runCli(['.'], process.cwd(), options);
 }
