@@ -6,29 +6,25 @@ import { ToolUtility, DoneEvent, ErrorEvent } from '@azure/ai-agents';
 import { AIProjectClient } from '@azure/ai-projects';
 import { config } from 'dotenv';
 import { getAssistantMessage, getAssistantMessageContent, saveBlogPostToFile, isMarkdown, processRemoteRepo, ensureFreshFile, extractIntroductionSection } from './utils.js';
-import { argv } from './cliArgs.js';
+import { argv } from './cli-args.js';
+import { promptForMissingEnvVars, getCurrentEnvValues } from './env-prompts.js';
 config();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const prompt = fs.readFileSync(path.join(__dirname, 'prompt.md'), 'utf8');
-
 await runBlogAgent().catch(console.error);
 
 async function runBlogAgent() {
-    const endpoint = process.env.PROJECT_ENDPOINT;
-    const deployment = process.env.MODEL_DEPLOYMENT_NAME || 'gpt-4o';
-    const blogRepoUrl = argv.repoUrl || process.env.BLOG_REPO_URL;
-    const blogRepoName = argv.repoName || process.env.BLOG_REPO_NAME;
-    const blogRepoIgnoreFiles = argv.ignoreFiles || process.env.BLOG_REPO_IGNORE_FILES || '';
-    if (!endpoint) {
-        throw new Error('PROJECT_ENDPOINT environment variable is not set.');
-    }
-    if (!blogRepoUrl) {
-        throw new Error('BLOG_REPO_URL environment variable is not set.');
-    }
-    if (!blogRepoName) {
-        throw new Error('BLOG_REPO_NAME environment variable is not set.');
-    }
+    // Get current values from CLI args and environment
+    const currentValues = getCurrentEnvValues(argv);
+    
+    // Prompt for missing values
+    const envConfig = await promptForMissingEnvVars(currentValues);
+    
+    const endpoint = envConfig.AI_FOUNDRY_PROJECT_ENDPOINT;
+    const deployment = envConfig.MODEL_DEPLOYMENT_NAME;
+    const blogRepoUrl = envConfig.BLOG_REPO_URL;
+    const blogRepoName = envConfig.BLOG_REPO_NAME;
+    const blogRepoIgnoreFiles = envConfig.BLOG_REPO_IGNORE_FILES;
     const normalizedFileName = blogRepoName.toLowerCase().replace(/\s+/g, '-');
     const baseFilesPath = '../data'
     const repoDataFilePath = `${baseFilesPath}/repos/${normalizedFileName}.md`;
@@ -80,7 +76,8 @@ async function runBlogAgent() {
 
         // Create a thread and message
         const fileSearchThread = await client.agents.threads.create({ toolResources: fileSearchTool.resources });
-        console.log(`\n---------------- 📝 User Prompt ---------------- \n`);
+        console.log(`\n---------------- 📝 Adding Prompt to Agent Message ---------------- \n`);
+        const prompt = fs.readFileSync(path.join(__dirname, 'prompt.md'), 'utf8');
         await client.agents.messages.create(
             fileSearchThread.id,
             'user',
@@ -132,9 +129,4 @@ async function runBlogAgent() {
         console.error('Error in runAgents:', err);
         throw err;
     }
-}
-
-if (argv.help || argv.h) {
-    console.log(`\nUsage: node src/index.js [options]\n\nOptions:\n  --repoUrl       GitHub repo URL\n  --repoName      Repo display name\n  --ignoreFiles   Glob patterns for files to ignore\n  -h, --help      Show this help message\n\nExample:\n  node src/index.js --repoUrl=https://github.com/microsoft/mcp-for-beginners --repoName="MCP for Beginners" --ignoreFiles="**/translations/*,**/translated_images/*"\n`);
-    process.exit(0);
 }

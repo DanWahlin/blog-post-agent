@@ -13,18 +13,20 @@
     "dev": "npx tsc && concurrently \"tsc --watch\" \"nodemon dist/index.js\""
   },
   "dependencies": {
-    "@azure/ai-projects": "1.0.0-beta.7",
     "@azure/ai-agents": "1.0.0-beta.3",
+    "@azure/ai-projects": "1.0.0-beta.7",
     "@azure/identity": "^4.10.0",
+    "@types/inquirer": "^9.0.8",
     "dotenv": "^16.5.0",
+    "inquirer": "^12.6.2",
     "repomix": "^0.3.6"
   },
   "devDependencies": {
     "@types/node": "^22.15.21",
+    "@types/yargs": "^17.0.33",
     "concurrently": "^9.1.2",
     "nodemon": "^3.1.10",
-    "typescript": "^5.8.3",
-    "tsx": "^4.19.4"
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
   }
-
 }
