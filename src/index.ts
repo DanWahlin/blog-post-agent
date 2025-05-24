@@ -20,12 +20,7 @@ async function runBlogAgent() {
     const envConfig = await promptForMissingEnvVars(currentValues);
 
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
-    const endpoint = envConfig.AI_FOUNDRY_PROJECT_ENDPOINT;
-    const deployment = envConfig.MODEL_DEPLOYMENT_NAME;
-    const blogRepoUrl = envConfig.BLOG_REPO_URL;
-    const blogRepoName = envConfig.BLOG_REPO_NAME;
-    const blogRepoIgnoreFiles = envConfig.BLOG_REPO_IGNORE_FILES;
-    const normalizedFileName = blogRepoName.toLowerCase().replace(/\s+/g, '-');
+    const normalizedFileName = envConfig.BLOG_REPO_NAME.toLowerCase().replace(/\s+/g, '-');
     const baseFilesPath = '../data'
     const repoDataFilePath = `${baseFilesPath}/repos/${normalizedFileName}.md`;
     const generatedBlogFilePath = `${baseFilesPath}/blogs/${normalizedFileName}.md`;
@@ -37,13 +32,13 @@ async function runBlogAgent() {
             repoDataFullPath,
             60,
             async () => {
-                await processRemoteRepo(blogRepoUrl, repoDataFullPath, blogRepoIgnoreFiles);
+                await processRemoteRepo(envConfig.BLOG_REPO_URL, repoDataFullPath, envConfig.BLOG_REPO_IGNORE_FILES);
             }
         );
 
         // Upload a repomix blog file
-        console.log(`\n==================== 🕵️  BLOG POST AGENT (${deployment}) ====================`);
-        const client: AIProjectClient = new AIProjectClient(endpoint, new DefaultAzureCredential());
+        console.log(`\n==================== 🕵️  BLOG POST AGENT (${envConfig.MODEL_DEPLOYMENT_NAME}) ====================`);
+        const client: AIProjectClient = new AIProjectClient(envConfig.AI_FOUNDRY_PROJECT_ENDPOINT, new DefaultAzureCredential());
         console.log(`\n---------------- 🗂️ Uploading File ----------------`);
         const file = await client.agents.files.upload(
             fs.createReadStream(path.join(__dirname, repoDataFilePath)),
@@ -66,7 +61,7 @@ async function runBlogAgent() {
 
         // Create an Agent and a FileSearch tool
         const fileSearchTool = ToolUtility.createFileSearchTool([vectorStore.id]);
-        const fileAgent = await client.agents.createAgent(deployment, {
+        const fileAgent = await client.agents.createAgent(envConfig.MODEL_DEPLOYMENT_NAME, {
             name: 'my-file-agent',
             instructions: 'You are a helpful technical blog writing assistant and can search information from uploaded files',
             tools: [fileSearchTool.definition],
