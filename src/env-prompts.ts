@@ -6,6 +6,7 @@ interface EnvironmentConfig {
     BLOG_REPO_URL: string;
     BLOG_REPO_NAME: string;
     BLOG_REPO_IGNORE_FILES: string;
+    BLOG_CUSTOM_PROMPT_FILE?: string;
 }
 
 /**
@@ -102,7 +103,8 @@ export async function promptForMissingEnvVars(
         MODEL_DEPLOYMENT_NAME: currentValues.MODEL_DEPLOYMENT_NAME || answers.MODEL_DEPLOYMENT_NAME || 'gpt-4o',
         BLOG_REPO_URL: currentValues.BLOG_REPO_URL || answers.BLOG_REPO_URL || '',
         BLOG_REPO_NAME: currentValues.BLOG_REPO_NAME || answers.BLOG_REPO_NAME || '',
-        BLOG_REPO_IGNORE_FILES: currentValues.BLOG_REPO_IGNORE_FILES || answers.BLOG_REPO_IGNORE_FILES || ''
+        BLOG_REPO_IGNORE_FILES: currentValues.BLOG_REPO_IGNORE_FILES || answers.BLOG_REPO_IGNORE_FILES || '',
+        BLOG_CUSTOM_PROMPT_FILE: currentValues.BLOG_CUSTOM_PROMPT_FILE || answers.BLOG_CUSTOM_PROMPT_FILE || ''
     };
 
     return finalConfig;
@@ -117,6 +119,7 @@ export function getCurrentEnvValues(cliArgs: any): Partial<EnvironmentConfig> {
         MODEL_DEPLOYMENT_NAME: cliArgs.deployment || process.env.MODEL_DEPLOYMENT_NAME,
         BLOG_REPO_URL: cliArgs.repoUrl || process.env.BLOG_REPO_URL,
         BLOG_REPO_NAME: cliArgs.repoName || process.env.BLOG_REPO_NAME,
-        BLOG_REPO_IGNORE_FILES: cliArgs.ignoreFiles || process.env.BLOG_REPO_IGNORE_FILES
+        BLOG_REPO_IGNORE_FILES: cliArgs.ignoreFiles || process.env.BLOG_REPO_IGNORE_FILES,
+        BLOG_CUSTOM_PROMPT_FILE: cliArgs.repoCustomPromptFile || process.env.BLOG_CUSTOM_PROMPT_FILE
     };
 }
