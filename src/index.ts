@@ -70,8 +70,21 @@ async function runBlogAgent() {
 
         // Create a thread and message
         const fileSearchThread = await client.agents.threads.create({ toolResources: fileSearchTool.resources });
-        console.log(`\n---------------- 📝 Adding Prompt to Agent Message ---------------- \n`);
-        const prompt = fs.readFileSync(path.join(__dirname, 'prompt.md'), 'utf8');
+        console.log(`\n---------------- 📝 Adding System Prompt to Agent Message ---------------- \n`);
+        let prompt = fs.readFileSync(path.join(__dirname, 'system-prompt.md'), 'utf8');
+        
+        const customPromptFile = envConfig.BLOG_CUSTOM_PROMPT_FILE;
+        if (customPromptFile) {
+            const customPromptFilePath = path.join(__dirname, "..", customPromptFile);
+            if (!fs.existsSync(customPromptFilePath)) {
+                console.warn(`Custom prompt file not found: ${customPromptFile}. Skipping.`);
+            } else {
+                const customPrompt = fs.readFileSync(customPromptFilePath, 'utf8');
+                console.log(`\n---------------- 📝 Adding Custom Prompt to Agent Message ---------------- \n`);
+                prompt = `<system prompt>${prompt}\n\n---\n\n<user prompt>${customPrompt}`;
+            }
+        }
+
         await client.agents.messages.create(
             fileSearchThread.id,
             'user',

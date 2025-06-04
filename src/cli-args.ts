@@ -22,6 +22,11 @@ export const argv = yargs(hideBin(process.argv))
     description: 'Repo display name',
     demandOption: false
   })
+  .option('repoCustomPromptFile', {
+    type: 'string',
+    description: 'Custom prompt file for the scanned repo',
+    demandOption: false
+  })
   .option('ignoreFiles', {
     type: 'string',
     description: 'Comma-separated list of glob patterns for files to ignore',

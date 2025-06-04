@@ -1,0 +1,1 @@
+translate all content to French.
