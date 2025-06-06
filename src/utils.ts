@@ -52,14 +52,32 @@ export function isMarkdown(content: string | null): boolean {
 }
 
 export async function processRemoteRepo(repoUrl: string, outputFile: string, blogRepoIgnoreFiles: string): Promise<unknown> {
+
+    let repoPathConfig: {
+        remote?: string;
+        branch?: string;
+        include?: string;
+    } = {}
+    if (repoUrl.startsWith('https://')) {
+        repoPathConfig = {
+            remote: repoUrl,
+            branch: 'main'
+        };
+    }
+    else if (repoUrl.startsWith('/') || repoUrl.startsWith('.') || repoUrl.startsWith('~/') || repoUrl.startsWith('\\')) {
+        repoPathConfig = {
+            include: repoUrl,
+        };
+    }
+
     const options: CliOptions = {
         style: 'markdown',
-        remote: repoUrl,
         output: outputFile,
         compress: true,
-        ignore: blogRepoIgnoreFiles
+        ignore: blogRepoIgnoreFiles,
+        ...repoPathConfig
     };
-    return await runCli(['.'], process.cwd(), options);
+    return await runCli(['.'], repoPathConfig.include ? repoPathConfig.include : process.cwd(), options);
 }
 
 /**

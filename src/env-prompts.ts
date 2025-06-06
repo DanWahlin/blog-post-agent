@@ -55,13 +55,13 @@ export async function promptForMissingEnvVars(
         const repoUrlAnswer = await inquirer.prompt({
             type: 'input',
             name: 'BLOG_REPO_URL',
-            message: 'Enter the GitHub repository URL:',
+            message: 'Enter the GitHub repository URL (or path to local repo):',
             validate: (input: string) => {
                 if (!input.trim()) {
                     return 'Repository URL is required';
                 }
-                if (!input.includes('github.com')) {
-                    return 'Please enter a valid GitHub URL';
+                if (!input.includes('github.com') && !input.startsWith('/')) {
+                    return 'Please enter a valid GitHub URL or a local path';
                 }
                 return true;
             }
